@@ -2,13 +2,13 @@ import os
 import time
 import base64
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Tuple
 import streamlit as st
 from langchain_groq import ChatGroq
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains import create_retrieval_chain
-from langchain_community.vectorstores import FAISS
+from langchain_community.vectorstores import Chroma
 from langchain_community.document_loaders import PyPDFLoader, Docx2txtLoader, TextLoader
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
@@ -61,7 +61,7 @@ def initialize_session_state():
 
 # --- Document Processing ---
 def process_uploaded_files(uploaded_files: List) -> bool:
-    """Process uploaded files and create vector store"""
+    """Process uploaded files and create vector store using Chroma"""
     try:
         st.session_state.processing_docs = True
         st.session_state.embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
@@ -71,8 +71,7 @@ def process_uploaded_files(uploaded_files: List) -> bool:
         st.session_state.document_names = []
         
         with st.spinner("Processing documents..."):
-            progress_bar = st.progress(0)
-            for i, uploaded_file in enumerate(uploaded_files):
+            for uploaded_file in uploaded_files:
                 file_path = os.path.join(TEMP_FOLDER, uploaded_file.name)
                 with open(file_path, "wb") as f:
                     f.write(uploaded_file.getbuffer())
@@ -82,8 +81,6 @@ def process_uploaded_files(uploaded_files: List) -> bool:
                     loader = SUPPORTED_FILE_TYPES[file_ext](file_path)
                     docs.extend(loader.load())
                     st.session_state.document_names.append(uploaded_file.name)
-                
-                progress_bar.progress((i + 1) / len(uploaded_files))
             
             if not docs:
                 st.error("No text could be extracted from the documents")
@@ -95,9 +92,11 @@ def process_uploaded_files(uploaded_files: List) -> bool:
             )
             final_documents = text_splitter.split_documents(docs)
             
-            st.session_state.vectors = FAISS.from_documents(
-                final_documents, 
-                st.session_state.embeddings
+            # Using Chroma instead of FAISS
+            st.session_state.vectors = Chroma.from_documents(
+                documents=final_documents,
+                embedding=st.session_state.embeddings,
+                persist_directory=TEMP_FOLDER
             )
             return True
             
