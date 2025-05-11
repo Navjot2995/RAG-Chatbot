@@ -15,6 +15,7 @@ from langchain_google_genai import GoogleGenerativeAIEmbeddings
 import requests
 import markdown2
 from dotenv import load_dotenv
+from streamlit_lottie import st_lottie
 
 # Lottie workaround
 def st_lottie(*args, **kwargs):
