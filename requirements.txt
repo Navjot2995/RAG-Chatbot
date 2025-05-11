@@ -10,3 +10,4 @@ docx2txt==0.8
 chromadb==0.4.24
 langchain==0.1.16
 google-generativeai==0.4.1
+streamlit-lottie==0.0.4
