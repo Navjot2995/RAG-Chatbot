@@ -1,9 +1,9 @@
 import os
 import time
-import base64
 from datetime import datetime
 from typing import List, Optional, Tuple
 import streamlit as st
+import streamlit.components.v1 as components  # Required for lottie workaround
 from langchain_groq import ChatGroq
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.chains.combine_documents import create_stuff_documents_chain
@@ -12,10 +12,17 @@ from langchain_community.vectorstores import Chroma
 from langchain_community.document_loaders import PyPDFLoader, Docx2txtLoader, TextLoader
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
-from streamlit_lottie import st_lottie
 import requests
 import markdown2
 from dotenv import load_dotenv
+
+# Lottie workaround
+def st_lottie(*args, **kwargs):
+    try:
+        from streamlit_lottie import st_lottie as _st_lottie
+        return _st_lottie(*args, **kwargs)
+    except:
+        return None
 
 # Load environment variables
 load_dotenv()
@@ -29,6 +36,7 @@ SUPPORTED_FILE_TYPES = {
     "txt": TextLoader
 }
 
+# [Rest of your existing code remains the same...]
 # --- Helper Functions ---
 @st.cache_data(show_spinner=False)
 def load_lottie(url: str) -> Optional[dict]:
